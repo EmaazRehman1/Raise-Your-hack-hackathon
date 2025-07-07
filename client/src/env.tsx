@@ -1,1 +1,1 @@
-export const BASE_URL='https://raise-your-hack-hackathon.vercel.app'
+export const BASE_URL='https://227c-39-35-216-71.ngrok-free.app'
