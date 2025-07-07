@@ -12,14 +12,23 @@ from config import TEXT_FILE_PATH
 
 app = FastAPI(title="EventAI API")
 
+# app.add_middleware(
+#     CORSMiddleware,
+#     allow_origins=["*"],
+#     allow_credentials=True,
+#     allow_methods=["*"],
+#     allow_headers=["*"],
+# )
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "https://eventai-omega.vercel.app/",
+        "http://localhost:3000"  # optional, for local dev
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 DATA_FILE = "users.json"
 
 class UserUpdate(BaseModel):
