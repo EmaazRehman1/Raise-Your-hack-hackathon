@@ -40,7 +40,7 @@ Answer:"""
     response = client.chat.completions.create(
         model=DEEPSEEK_MODEL,
         messages=[
-            {"role": "system", "content": "You are a helpful assistant for RAISE 2025."},
+            {"role": "system", "content": "You are a helpful chatbot for RAISE 2025."},
             {"role": "user", "content": prompt},
         ],
     )
