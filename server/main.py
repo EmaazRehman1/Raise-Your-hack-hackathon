@@ -24,7 +24,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "https://eventai-omega.vercel.app",
-        "http://localhost:3000"  # optional, for local dev
+        "http://localhost:5173",
     ],
     allow_credentials=True,
     allow_methods=["*"],
