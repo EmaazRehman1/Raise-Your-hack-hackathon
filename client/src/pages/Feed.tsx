@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,23 +12,71 @@ import {
   ExternalLink,
   TrendingUp,
   Clock,
-  Building2
+  Building2,
+  Loader2
 } from 'lucide-react';
-import { mockSessions, mockBooths } from '@/lib/data';
+import { getBooths, getSessions } from '@/Api/recommendations';
+
+interface Session {
+  session_id: string;
+  title: string;
+  speaker: string;
+  tags: string[];
+  description: string;
+  start_time: string;
+  duration_minutes: number;
+  location: string;
+  attendees: number;
+  capacity: number;
+}
+
+interface Booth {
+  booth_id: string;
+  name: string;
+  company: string;
+  tags: string[];
+  description: string;
+  location: string;
+  category: string;
+  currentVisitors: number;
+}
 
 export default function Feed() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [sessions, setSessions] = useState<Session[]>([]);
+  const [booths, setBooths] = useState<Booth[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // const trendingSessions = mockSessions.filter(session => session.isTrending);
-  // const trendingBooths = mockBooths.filter(booth => booth.isTrending);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Fetch sessions
+        const sessionsResponse = await getSessions()
+        // const sessionsData = await sessionsResponse.json();
+        setSessions(sessionsResponse);
+
+        // Fetch booths
+        const boothsResponse = await getBooths();
+        // const boothsData = await boothsResponse.json();
+        setBooths(boothsResponse);
+
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const allTags = [...new Set([
-    ...mockSessions.flatMap(session => session.tags),
-    ...mockBooths.flatMap(booth => booth.tags)
+    ...sessions.flatMap(session => session.tags),
+    ...booths.flatMap(booth => booth.tags)
   ])];
 
-  const filteredSessions = mockSessions.filter(session => {
+  const filteredSessions = sessions.filter(session => {
     const matchesSearch = session.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          session.speaker.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesTags = selectedTags.length === 0 || 
@@ -36,7 +84,7 @@ export default function Feed() {
     return matchesSearch && matchesTags;
   });
 
-  const filteredBooths = mockBooths.filter(booth => {
+  const filteredBooths = booths.filter(booth => {
     const matchesSearch = booth.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          booth.company.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesTags = selectedTags.length === 0 || 
@@ -52,7 +100,7 @@ export default function Feed() {
     );
   };
 
-  const SessionFeedCard = ({ session, index }: { session: any; index: number }) => (
+  const SessionFeedCard = ({ session, index }: { session: Session; index: number }) => (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -84,7 +132,7 @@ export default function Feed() {
           <div className="flex items-center gap-4 mb-4 text-sm text-muted-foreground">
             <div className="flex items-center gap-1">
               <Clock className="w-4 h-4" />
-              <span>{session.time}</span>
+              <span>{session.start_time}</span>
             </div>
             <div className="flex items-center gap-1">
               <MapPin className="w-4 h-4" />
@@ -105,7 +153,7 @@ export default function Feed() {
     </motion.div>
   );
 
-  const BoothFeedCard = ({ booth, index }: { booth: any; index: number }) => (
+  const BoothFeedCard = ({ booth, index }: { booth: Booth; index: number }) => (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -155,6 +203,19 @@ export default function Feed() {
       </Card>
     </motion.div>
   );
+
+  if (loading) {
+    return (
+     <div className="h-screen flex flex-col items-center justify-center space-y-4">
+      <Loader2 className="h-8 w-8 animate-spin text-primary" />
+
+      <h2 className="text-2xl font-bold">Loading feed...</h2>
+      <p className="text-muted-foreground">
+        Please wait while we fetch your matches.
+      </p>
+    </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-6">
@@ -217,13 +278,13 @@ export default function Feed() {
             <div className="space-y-4">
               <h2 className="text-xl font-semibold">Live Sessions</h2>
               {filteredSessions.slice(0, 3).map((session, index) => (
-                <SessionFeedCard key={session.id} session={session} index={index} />
+                <SessionFeedCard key={session.session_id} session={session} index={index} />
               ))}
             </div>
             <div className="space-y-4">
               <h2 className="text-xl font-semibold">Popular Booths</h2>
               {filteredBooths.slice(0, 3).map((booth, index) => (
-                <BoothFeedCard key={booth.id} booth={booth} index={index} />
+                <BoothFeedCard key={booth.booth_id} booth={booth} index={index} />
               ))}
             </div>
           </div>
@@ -232,7 +293,7 @@ export default function Feed() {
         <TabsContent value="sessions" className="space-y-4">
           <div className="grid lg:grid-cols-2 gap-6">
             {filteredSessions.map((session, index) => (
-              <SessionFeedCard key={session.id} session={session} index={index} />
+              <SessionFeedCard key={session.session_id} session={session} index={index} />
             ))}
           </div>
         </TabsContent>
@@ -240,7 +301,7 @@ export default function Feed() {
         <TabsContent value="booths" className="space-y-4">
           <div className="grid lg:grid-cols-2 gap-6">
             {filteredBooths.map((booth, index) => (
-              <BoothFeedCard key={booth.id} booth={booth} index={index} />
+              <BoothFeedCard key={booth.booth_id} booth={booth} index={index} />
             ))}
           </div>
         </TabsContent>

@@ -1,9 +1,14 @@
+from contextlib import asynccontextmanager
 from typing import Any, Dict, List, Optional
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 import json
 from sentence_transformers import SentenceTransformer, util
+from embedder import load_and_chunk_text, embed_and_store
+from retriever import retrieve_and_respond
+from config import TEXT_FILE_PATH
 
 app = FastAPI(title="EventAI API")
 
@@ -188,4 +193,54 @@ def get_recommendations():
         raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
 
 
+@app.get("/sessions", response_model=List[Dict[str, Any]])
+def get_all_sessions():
+    try:
+        with open("sessions.json", "r", encoding="utf-8") as f:
+            sessions = json.load(f)
+        return sessions
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="Sessions file not found")
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=500, detail="Invalid JSON format in sessions file")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
 
+
+@app.get("/booths", response_model=List[Dict[str, Any]])
+def get_all_sessions():
+    try:
+        with open("booths.json", "r", encoding="utf-8") as f:
+            booths = json.load(f)
+        return booths
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="Sessions file not found")
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=500, detail="Invalid JSON format in sessions file")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
+
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    print("[Lifespan] Loading and chunking text...")
+    chunks = load_and_chunk_text(TEXT_FILE_PATH)
+
+    print("[Lifespan] Embedding and storing in Chroma...")
+    embed_and_store(chunks)
+
+    yield  # App is now running
+
+    print("[Lifespan] Shutdown complete.")
+
+# --- App Init ---
+# app = FastAPI(title="RAISE 2025 RAG Chatbot", lifespan=lifespan)
+
+class QueryRequest(BaseModel):
+    query: str
+
+@app.get("/chat/")
+def chat(q: str = Query(..., description="Your question about the RAISE 2025 event")):
+    answer = retrieve_and_respond(q)
+    return JSONResponse(content={"question": q, "answer": answer})

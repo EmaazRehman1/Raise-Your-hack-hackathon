@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,27 +15,67 @@ import {
   Search,
   Filter,
   Star,
-  TrendingUp
+  Loader2
 } from 'lucide-react';
-import { mockSessions, categoryOptions } from '@/lib/data';
+import { categoryOptions } from '@/lib/data';
+import { getRecommendations, getSessions } from '@/Api/recommendations';
+
+interface Session {
+  session_id: string;
+  title: string;
+  speaker: string;
+  tags: string[];
+  badges: string[];
+  description: string;
+  start_time: string;
+  duration_minutes: number;
+  location: string;
+  attendees: number;
+  capacity: number;
+  similarity_score?: number;
+}
 
 export default function Agenda() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All Categories');
   const [myAgenda, setMyAgenda] = useState<string[]>([]);
+  const [allSessions, setAllSessions] = useState<Session[]>([]);
+  const [recommendedSessions, setRecommendedSessions] = useState<Session[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const filteredSessions = mockSessions.filter(session => {
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Fetch all sessions
+        const sessionsResponse = await getSessions();
+        // const sessionsData = await sessionsResponse.json();
+        setAllSessions(sessionsResponse);
+
+        // Fetch recommended sessions
+        const recommendedResponse = await getRecommendations();
+        // const recommendedData = await recommendedResponse.json();
+        setRecommendedSessions(recommendedResponse.recommended_sessions);
+
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const filteredSessions = allSessions.filter(session => {
     const matchesSearch = session.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       session.speaker.toLowerCase().includes(searchTerm.toLowerCase()) ||
       session.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
 
-    const matchesCategory = selectedCategory === 'All Categories' || session.category === selectedCategory;
+    const matchesCategory = selectedCategory === 'All Categories' || 
+      session.tags.some(tag => tag.toLowerCase() === selectedCategory.toLowerCase());
 
     return matchesSearch && matchesCategory;
   });
-
-  const recommendedSessions = filteredSessions.filter(session => session.isRecommended);
-  const trendingSessions = filteredSessions.filter(session => session.isTrending);
 
   const toggleAgenda = (sessionId: string) => {
     setMyAgenda(prev =>
@@ -45,7 +85,7 @@ export default function Agenda() {
     );
   };
 
-  const SessionCard = ({ session, index }: { session: any; index: number }) => (
+  const SessionCard = ({ session, index }: { session: Session; index: number }) => (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -66,16 +106,15 @@ export default function Agenda() {
               </div>
             </div>
             <div className="flex flex-wrap gap-2">
-              {session.isRecommended && (
+              {session.badges?.includes('Recommended') && (
                 <Badge variant="outline" className="text-xs bg-yellow-50 text-yellow-700 border-yellow-200">
                   <Star className="w-3 h-3 mr-1" />
                   Recommended
                 </Badge>
               )}
-              {session.isTrending && (
-                <Badge variant="outline" className="text-xs bg-orange-50 text-orange-700 border-orange-200">
-                  <TrendingUp className="w-3 h-3 mr-1" />
-                  Trending
+              {session.similarity_score && (
+                <Badge variant="outline" className="text-xs">
+                  Match: {session.similarity_score}%
                 </Badge>
               )}
             </div>
@@ -87,11 +126,11 @@ export default function Agenda() {
           <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-4 text-sm text-muted-foreground">
             <div className="flex items-center gap-1">
               <Clock className="w-4 h-4" />
-              <span>{session.time}</span>
+              <span>{session.start_time}</span>
             </div>
             <div className="flex items-center gap-1">
               <Calendar className="w-4 h-4" />
-              <span>{session.duration}</span>
+              <span>{session.duration_minutes} mins</span>
             </div>
             <div className="flex items-center gap-1">
               <MapPin className="w-4 h-4" />
@@ -103,23 +142,36 @@ export default function Agenda() {
             <div className="flex items-center gap-2">
               <Users className="w-4 h-4 text-muted-foreground" />
               <span className="text-sm text-muted-foreground">
-                {session.attendees}/{session.maxAttendees} attendees
+                {session.attendees}/{session.capacity} attendees
               </span>
             </div>
             <Button
-              variant={myAgenda.includes(session.id) ? "default" : "outline"}
+              variant={myAgenda.includes(session.session_id) ? "default" : "outline"}
               size="sm"
-              onClick={() => toggleAgenda(session.id)}
+              onClick={() => toggleAgenda(session.session_id)}
               className="w-full sm:w-auto"
             >
-              <Plus className="w-4 h-4 mr-2" />
-              {myAgenda.includes(session.id) ? 'In Agenda' : 'Add to Agenda'}
+              {!myAgenda.includes(session.session_id) &&<Plus className="w-4 h-4 mr-2" /> } 
+              {myAgenda.includes(session.session_id) ? 'In Agenda' : 'Add to Agenda'}
             </Button>
           </div>
         </CardContent>
       </Card>
     </motion.div>
   );
+
+  if (loading) {
+    return (
+      <div className="h-screen flex flex-col items-center justify-center space-y-4">
+      <Loader2 className="h-8 w-8 animate-spin text-primary" />
+
+      <h2 className="text-2xl font-bold">Loading agenda...</h2>
+      <p className="text-muted-foreground">
+        Please wait while we fetch your matches.
+      </p>
+    </div>
+    );
+  }
 
   return (
     <div className="p-4 sm:p-6 space-y-6">
@@ -167,10 +219,9 @@ export default function Agenda() {
 
       {/* Tabs */}
       <Tabs defaultValue="all" className="space-y-6">
-        <TabsList className="grid grid-cols-2 sm:grid-cols-4 gap-1">
+        <TabsList className="grid grid-cols-3 gap-1">
           <TabsTrigger value="all" className="text-xs sm:text-sm py-1 sm:py-2">All</TabsTrigger>
           <TabsTrigger value="recommended" className="text-xs sm:text-sm py-1 sm:py-2">Recommended</TabsTrigger>
-          <TabsTrigger value="trending" className="text-xs sm:text-sm py-1 sm:py-2">Trending</TabsTrigger>
           <TabsTrigger value="my-agenda" className="text-xs sm:text-sm py-1 sm:py-2">
             My Agenda ({myAgenda.length})
           </TabsTrigger>
@@ -178,7 +229,7 @@ export default function Agenda() {
 
         <TabsContent value="all" className="space-y-4">
           {filteredSessions.map((session, index) => (
-            <SessionCard key={session.id} session={session} index={index} />
+            <SessionCard key={session.session_id} session={session} index={index} />
           ))}
         </TabsContent>
 
@@ -192,35 +243,13 @@ export default function Agenda() {
                 </p>
               </div>
               {recommendedSessions.map((session, index) => (
-                <SessionCard key={session.id} session={session} index={index} />
+                <SessionCard key={session.session_id} session={session} index={index} />
               ))}
             </>
           ) : (
             <div className="text-center py-12">
               <Star className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">No recommended sessions found</h3>
-              <p className="text-muted-foreground">Try adjusting your search or filters</p>
-            </div>
-          )}
-        </TabsContent>
-
-        <TabsContent value="trending" className="space-y-4">
-          {trendingSessions.length > 0 ? (
-            <>
-              <div className="mb-6">
-                <h2 className="text-xl font-semibold mb-2">Trending Now</h2>
-                <p className="text-muted-foreground">
-                  Popular sessions with high attendance
-                </p>
-              </div>
-              {trendingSessions.map((session, index) => (
-                <SessionCard key={session.id} session={session} index={index} />
-              ))}
-            </>
-          ) : (
-            <div className="text-center py-12">
-              <TrendingUp className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No trending sessions found</h3>
               <p className="text-muted-foreground">Try adjusting your search or filters</p>
             </div>
           )}
@@ -235,10 +264,10 @@ export default function Agenda() {
                   {myAgenda.length} session{myAgenda.length !== 1 ? 's' : ''} selected
                 </p>
               </div>
-              {filteredSessions
-                .filter(session => myAgenda.includes(session.id))
+              {allSessions
+                .filter(session => myAgenda.includes(session.session_id))
                 .map((session, index) => (
-                  <SessionCard key={session.id} session={session} index={index} />
+                  <SessionCard key={session.session_id} session={session} index={index} />
                 ))}
             </>
           ) : (

@@ -10,8 +10,6 @@ import { Progress } from '@/components/ui/progress';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { 
-  User, 
-  Building2, 
   Linkedin, 
   Target,
   Sparkles,
@@ -311,7 +309,7 @@ export default function Profile() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
           >
-            <Card>
+            {/* <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Sparkles className="w-5 h-5 text-purple-500" />
@@ -339,7 +337,7 @@ export default function Profile() {
                   </div>
                 </div>
               </CardContent>
-            </Card>
+            </Card> */}
           </motion.div>
         </div>
       </div>
