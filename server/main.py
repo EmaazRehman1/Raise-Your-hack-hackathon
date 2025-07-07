@@ -9,6 +9,7 @@ from sentence_transformers import SentenceTransformer, util
 from embedder import load_and_chunk_text, embed_and_store
 from retriever import retrieve_and_respond
 from config import TEXT_FILE_PATH
+from mangum import Mangum 
 
 app = FastAPI(title="EventAI API")
 
@@ -253,3 +254,5 @@ class QueryRequest(BaseModel):
 def chat(q: str = Query(..., description="Your question about the RAISE 2025 event")):
     answer = retrieve_and_respond(q)
     return JSONResponse(content={"question": q, "answer": answer})
+
+handler = Mangum(app)
