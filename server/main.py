@@ -23,7 +23,7 @@ app = FastAPI(title="EventAI API")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "https://eventai-omega.vercel.app/",
+        "https://eventai-omega.vercel.app",
         "http://localhost:3000"  # optional, for local dev
     ],
     allow_credentials=True,
