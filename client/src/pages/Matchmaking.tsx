@@ -81,7 +81,7 @@ export default function Matchmaking() {
        <div className="h-screen flex flex-col items-center justify-center space-y-4">
       <Loader2 className="h-8 w-8 animate-spin text-primary" />
 
-      <h2 className="text-2xl font-bold">Loading matches...</h2>
+      <h2 className="text-2xl font-bold">Loading matches according your interests...</h2>
       <p className="text-muted-foreground">
         Please wait while we fetch your matches.
       </p>

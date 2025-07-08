@@ -166,9 +166,9 @@ export default function Agenda() {
       <Loader2 className="h-8 w-8 animate-spin text-primary" />
 
       <h2 className="text-2xl font-bold">Loading agenda...</h2>
-      <p className="text-muted-foreground">
+      {/* <p className="text-muted-foreground">
         Please wait while we fetch your matches.
-      </p>
+      </p> */}
     </div>
     );
   }

@@ -9,17 +9,18 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
-import { 
-  Linkedin, 
+import {
+  Linkedin,
   Target,
   Sparkles,
   Plus,
   TrendingUp,
-  CheckCircle
+  CheckCircle,
+  Loader2
 } from 'lucide-react';
 import InterestSelectionModal from '@/components/modals/InterestSelectionModal';
 // import { getUser, updateUser } from '@/api/user';
-import { getUser,updateUser } from '@/Api/network';
+import { getUser, updateUser } from '@/Api/network';
 
 interface UserData {
   id: string;
@@ -80,7 +81,7 @@ export default function Profile() {
       //   goals_objectives: formData.goals_objectives,
       //   interests: formData.interests,
       // });
-      const resp=await updateUser(formData.id, {
+      const resp = await updateUser(formData.id, {
         full_name: formData.full_name,
         job_title: formData.job_title,
         company: formData.company,
@@ -113,7 +114,16 @@ export default function Profile() {
   const profileScore = Math.round((completedSuggestions / profileSuggestions.length) * 100);
 
   if (isLoading) {
-    return <div className="p-6 max-w-4xl mx-auto">Loading profile...</div>;
+    return (
+      <div className="h-screen flex flex-col items-center justify-center space-y-4">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+
+        <h2 className="text-2xl font-bold">Loading profile...</h2>
+        <p className="text-muted-foreground">
+          Please wait while we fetch your profile. Update your interests to get better matches.
+        </p>
+      </div>
+    )
   }
 
   return (
@@ -235,9 +245,9 @@ export default function Profile() {
                   <div className="flex items-center justify-between mb-3">
                     <Label>Interests</Label>
                     {isEditing && (
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
+                      <Button
+                        variant="outline"
+                        size="sm"
                         onClick={() => setShowInterestModal(true)}
                         disabled={isLoading}
                       >
