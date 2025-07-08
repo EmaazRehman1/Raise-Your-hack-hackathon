@@ -5,6 +5,6 @@ COLLECTION_NAME = "raise_summit"
 CHROMA_DB_DIR = "./chroma_db"
 TEXT_FILE_PATH = "chatbot.txt"
 
-OPENROUTER_API_KEY = "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"
+OPENROUTER_API_KEY = "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"
 OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
-DEEPSEEK_MODEL = "deepseek/deepseek-r1"
+DEEPSEEK_MODEL = "meta-llama/llama-3.1-8b-instruct"

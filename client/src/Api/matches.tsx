@@ -1,9 +1,9 @@
 import { BASE_URL } from "@/env";
 
-export const getMatches=async()=>{
+export const getMatches=async(userId:string)=>{
     try{
 
-        const response=await fetch(`${BASE_URL}/match`, {
+        const response=await fetch(`${BASE_URL}/match/${userId}`, {
             method: 'GET'
         })
         if (!response.ok) {

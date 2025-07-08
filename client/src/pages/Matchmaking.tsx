@@ -34,7 +34,7 @@ export default function Matchmaking() {
   const fetchMatches = async () => {
     try {
       setLoading(true);
-      const resp = await getMatches();
+      const resp = await getMatches('user_001');
       const transformedMatches = resp.top_matches.map((match:any) => ({
         ...match,
       }));
