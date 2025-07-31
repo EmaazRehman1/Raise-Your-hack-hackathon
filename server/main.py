@@ -12,6 +12,7 @@ from retriever import retrieve_and_respond
 from mangum import Mangum
 from dotenv import load_dotenv
 import os
+from mangum import Mangum
 
 load_dotenv()
 TEXT_FILE_PATH = os.getenv("TEXT_FILE_PATH")
