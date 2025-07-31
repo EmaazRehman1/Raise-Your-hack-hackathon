@@ -4,7 +4,16 @@ import re
 import chromadb
 from chromadb.config import Settings
 from sentence_transformers import SentenceTransformer
-from config import EMBEDDING_MODEL_NAME, COLLECTION_NAME, CHROMA_DB_DIR
+# from config import EMBEDDING_MODEL_NAME, COLLECTION_NAME, CHROMA_DB_DIR
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
+EMBEDDING_MODEL_NAME = os.getenv("EMBEDDING_MODEL_NAME")
+COLLECTION_NAME = os.getenv("COLLECTION_NAME")
+CHROMA_DB_DIR = os.getenv("CHROMA_DB_DIR")
+
 
 def load_and_chunk_text(file_path, chunk_size=500):
     with open(file_path, "r", encoding="utf-8") as f:

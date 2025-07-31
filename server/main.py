@@ -8,8 +8,13 @@ import json
 from sentence_transformers import SentenceTransformer, util
 from embedder import load_and_chunk_text, embed_and_store
 from retriever import retrieve_and_respond
-from config import TEXT_FILE_PATH
+# from config import TEXT_FILE_PATH
 from mangum import Mangum
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+TEXT_FILE_PATH = os.getenv("TEXT_FILE_PATH")
 
 # --- Lifespan for RAG Embedding ---
 @asynccontextmanager

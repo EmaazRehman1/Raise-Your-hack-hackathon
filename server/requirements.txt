@@ -7,3 +7,6 @@ scipy
 fastapi
 uvicorn
 mangum
+chromadb
+dotenv
+openai

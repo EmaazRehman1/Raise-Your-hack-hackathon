@@ -5,14 +5,28 @@ from chromadb.config import Settings
 from openai import OpenAI
 from sentence_transformers import SentenceTransformer
 
-from config import (
-    EMBEDDING_MODEL_NAME,
-    COLLECTION_NAME,
-    CHROMA_DB_DIR,
-    OPENROUTER_API_KEY,
-    OPENROUTER_BASE_URL,
-    DEEPSEEK_MODEL,
-)
+# from config import (
+#     EMBEDDING_MODEL_NAME,
+#     COLLECTION_NAME,
+#     CHROMA_DB_DIR,
+#     OPENROUTER_API_KEY,
+#     OPENROUTER_BASE_URL,
+#     DEEPSEEK_MODEL,
+# )
+from dotenv import load_dotenv
+import os
+
+# Load variables from .env
+load_dotenv()
+
+# Assign them to constants
+EMBEDDING_MODEL_NAME = os.getenv("EMBEDDING_MODEL_NAME")
+COLLECTION_NAME = os.getenv("COLLECTION_NAME")
+CHROMA_DB_DIR = os.getenv("CHROMA_DB_DIR")
+
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
+OPENROUTER_BASE_URL = os.getenv("OPENROUTER_BASE_URL")
+DEEPSEEK_MODEL = os.getenv("DEEPSEEK_MODEL")
 
 def retrieve_and_respond(query, top_k=3):
     print(f"[Query] Searching for: {query}")
